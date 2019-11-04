@@ -1,23 +1,23 @@
-<?php
+ï»¿<?php
 	//$nombre = $_GET['nombre'];
-	$matricula = $_GET['matricula'];
-	$fechNacim = $_GET['fechNcmt'];
-	$estado = $_GET['estados'];
-	$carrera = $_GET['carrera'];
-	echo "Tu nombre es " . GetDatos("nombre", "Sin nombre") . ". Naciste el " . $fechNacim . ". En el estado de " . $estado . ". ";
+	//$matricula = $_GET['matricula'];
+	//$fechNacim = $_GET['fechNcmt'];
+	//$estado = $_GET['estados'];
+	//$carrera = $_GET['carrera'];
+	echo "Tu nombre es " . GetDatos("nombre", "Sin nombre") . ". Naciste el " . GetDatos("fechNcmt", "1990-1-1") . ". En el estado de " . GetDatos("estados", "Tamaulipas") . ". ";
 	
-	switch($carrera) {
+	switch(GetDatos("carrera", "iti")) {
 		case "iti":
-			$carrera = utf8_encode("Ingeniería en Tecnologías de la Información");
+			$carrera = utf8_encode("IngenierÃ­a en TecnologÃ­as de la InformaciÃ³n");
 			break;
 		case "industrial":
-			$carrera = utf8_encode("Ingeniería Industrial");
+			$carrera = utf8_encode("IngenierÃ­a Industrial");
 			break;
 		case "energia":
-			$carrera = utf8_encode("Ingeniería en Energía");
+			$carrera = utf8_encode("IngenierÃ­a en EnergÃ­a");
 			break;
 		case "electronica":
-			$carrera = utf8_encode("Ingeniería en Electrónica");
+			$carrera = utf8_encode("IngenierÃ­a en ElectrÃ³nica");
 			break;
 	}
 
@@ -28,7 +28,7 @@
 	if(isset($_GET['estc2']))
 		echo "Has realizado la Estancia 2. ";
 	if(isset($_GET['estd1']))
-		echo utf8_encode("Has realizado Estadías. ");
+		echo utf8_encode("Has realizado Estadï¿½as. ");
 
 	function GetDatos($name, $valorDefault) {
 		$dato = $valorDefault;

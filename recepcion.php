@@ -1,17 +1,37 @@
-﻿<html>
+﻿<?php
+	function GetDatos($name, $valorDefault) {
+		$dato = $valorDefault;
+		
+		if(isset($_GET[$name]))
+			$dato = $_GET[$name];
+		else if(isset($_POST[$name]))
+			$dato = $_POST[$name];
+		
+		return $dato;
+	}
+
+	$matricula = GetDatos("matricula", "0");
+	$nombre = GetDatos("nombre", "Sin nombre");
+	$fechNcmt = GetDatos("fechNcmt", "1999-1-1");
+	$estados = GetDatos("estados", "Tamaulipas");
+	$carrera = GetDatos("carrera", "Ingeniería en Tecnologías de la Información")
+?>
+<html>
 
 <head>
     <meta charset="UTF-8">
 </head>
 
 <body>
-    <form action="datos.php" id="alumnoForm">
+    <form action="" method="post" id="alumnoForm">
         Matricula:<br>
-        <input type="text" name="matricula"><br> Nombre:
+        <input type="text" name="matricula" <?php echo "value=" . $matricula; ?> ><br> 
 
-        <br>
-        <textarea name="nombre"></textarea><br> Fecha de nacimiento:<br>
-        <input type="date" name="fechNcmt"><br> Estado de nacimiento:<br>
+	Nombre:<br>
+        <textarea name="nombre"><?php echo $nombre; ?></textarea><br> 
+	Fecha de nacimiento:<br>
+        <input type="date" name="fechNcmt" <?php echo "value=" . $fechNcmt; ?>> <br> 
+	Estado de nacimiento:<br>
         <select name="estados" form="alumnoForm">
 
 		<option value="Todo México">Todo México</option>
@@ -86,11 +106,13 @@
         <input type="radio" name="carrera" value="iti">Ingeniería en Tecnologías de la Información<br>
         <input type="radio" name="carrera" value="industrial">Ingeniería Industrial<br>
         <input type="radio" name="carrera" value="energia">Ingeniería en Energía<br>
-        <input type="radio" name="carrera" value="electronica">Ingeniería en Electrónica<br> Avance de estancias/estadias:<br>
+        <input type="radio" name="carrera" value="electronica">Ingeniería en Electrónica<br> 
+	Avance de estancias/estadias:<br>
         <input type="checkbox" name="estc1" value="1">Estancia 1<br>
         <input type="checkbox" name="estc2" value="1">Estancia 2<br>
         <input type="checkbox" name="estd1" value="1">Estadia 1<br><br>
-        <input type="submit" value="Enviar">
+        <input type="submit" value="Enviar"><br><br>
+	<input type="text" value="<?php echo $matricula . " " . $nombre . " " . $fechNcmt . " " . $estados . " " . $carrera; ?>" name="variable">
     </form>
 
 </body>
