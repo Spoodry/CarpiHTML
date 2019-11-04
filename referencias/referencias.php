@@ -44,10 +44,11 @@
                 break;
             }
         }
+        $res['contAutores'] = $contAutores;
         $res['autores'] = $autores;
 
         $titulo = $array[$contAutores];
-        $res['titulo'];
+        $res['titulo'] = $titulo;
 
         $diario = $array[$contAutores + 1];
         $res['diario'] = $diario;
@@ -114,207 +115,93 @@
 
     //ctype_upper(substr($txtRef, $i, 1))
     function saveRIS($txtRef, $lnk) {
-        $array = explode(", ", $txtRef);
+        $fragmentos = extraerInformacion($txtRef);
 
-        $autores = ""; $contAutores = 0;
-        foreach ($array as $elemento) {
-            if(strlen($elemento) <= 20) {
-                $autores = $autores . $elemento . ",";
-                $contAutores++;
-            } else {
-                break;
-            }
-        }
-    
-        $titulo = $array[$contAutores];
-        $diario = $array[$contAutores + 1];
-    
-        $volumen = $array[$contAutores + 2];
-        $volumen = str_replace("Volume ", "", $volumen);
-    
-        $year = $array[$contAutores + 3];
-    
-        $paginas = $array[$contAutores + 4];
-        $paginas = str_replace("Pages ", "", $paginas);
-        
-        $issn = $array[$contAutores + 5];
-        $issn = str_replace("ISSN ", "", $issn);
-    
-        $hastaISSN = $contAutores + 5;
-        $textTemp = ""; $cont = 0; $posISSNFin = 0;
-        for ($i=0; $i < strlen($txtRef); $i++) { 
-            $textTemp = $textTemp . substr($txtRef, $i, 1);
-            if(substr($txtRef, $i, 1) == ",") {
-                if($cont == $hastaISSN) {
-                    $posISSNFin = $i + 2;
-                    break;
-                }
-                $cont++;
-            }
-        }
-    
-        $textReferencia = substr($txtRef, $posISSNFin, strlen($txtRef));
-    
-        $array = explode(" ", $textReferencia);
-    
-        $url = $array[0];
-        $url = substr($array[0], 0, strlen($url) - 1);
-    
-        $doi = $array[1];
-        $doi = str_replace("(","",$doi);
-        $doi = str_replace(")","",$doi);
-    
-        $pos = strlen($array[0]) + strlen($array[1]) + 1;
-    
-        $textReferencia = substr($textReferencia, $pos, strlen($textReferencia));
-    
-        $textReferencia = str_replace(" Keywords: ", "|", $textReferencia);
-    
-        $array = explode("|", $textReferencia);
-    
-        $abstract = $array[0];
-        $abstract = str_replace("Abstract: ", "", $abstract);
-    
-        $keywords = $array[1];
-        $keywords = str_replace("; ",",",$keywords);
-        //------------------------------------------------------------------------------------
-        $ris = "TY  - JOUR\n";
-        $ris = $ris . "T1  - " . $titulo . "\n";
+        $ris = "TY  - JOUR" . PHP_EOL;
+        $ris = $ris . "T1  - " . substr($fragmentos['titulo'], 1, strlen($fragmentos['titulo'])) . PHP_EOL;
 
-        $array = explode(",", $autores);
+        $array = explode(",", $fragmentos['autores']);
 
         foreach ($array as $autor) {
             if($autor != "") {
                 $datosAutor = explode(" ", $autor);
-                $ris = $ris . "AU  - " . $datosAutor[1] . ", " . $datosAutor[0] . "\n";
+                $ris = $ris . "AU  - " . $datosAutor[1] . ", " . $datosAutor[0] . PHP_EOL;
             }
         }
 
-        $ris = $ris . "JO  - " . $diario . "\n";
-        $ris = $ris . "VL  - " . $volumen . "\n";
+        $ris = $ris . "JO  - " . $fragmentos['diario'] . PHP_EOL;
+        $ris = $ris . "VL  - " . $fragmentos['volumen'] . PHP_EOL;
 
-        $array = explode("-",$paginas);
-        $ris = $ris . "SP  - " . $array[0] . "\n";
-        $ris = $ris . "EP  - " . $array[1] . "\n";
+        $array = explode("-",$fragmentos['paginas']);
+        $ris = $ris . "SP  - " . $array[0] . PHP_EOL;
+        $ris = $ris . "EP  - " . $array[1] . PHP_EOL;
 
-        $ris = $ris . "PY  - " . $year . "\n";
-        $ris = $ris . "DA  - " . "\n";
-        $ris = $ris . "T2  - " . "\n";
-        $ris = $ris . "SN  - " . $issn . "\n";
-        $ris = $ris . "DO  - " . $doi . "\n";
-        $ris = $ris . "UR  - " . $url . "\n";
+        $ris = $ris . "PY  - " . $fragmentos['year'] . PHP_EOL;
+        $ris = $ris . "DA  - " . PHP_EOL;
+        $ris = $ris . "T2  - " . PHP_EOL;
+        $ris = $ris . "SN  - " . $fragmentos['issn'] . PHP_EOL;
+        $ris = $ris . "DO  - " . $fragmentos['doi'] . PHP_EOL;
+        $ris = $ris . "UR  - " . $lnk . PHP_EOL;
         
-        $array = explode(",",$keywords);
+        $array = explode(",",$fragmentos['keywords']);
 
         foreach ($array as $key) {
-            $ris = $ris . "KW  - " . $key . "\n";
+            $ris = $ris . "KW  - " . $key . PHP_EOL;
         }
 
-        $ris = $ris . "AB  -" . $abstract . "\n";
+        $ris = $ris . "AB  -" . $fragmentos['abstract'] . PHP_EOL;
 
-        $ris = $ris . "ER  - " . "\n";
+        $ris = $ris . "ER  - " . PHP_EOL;
 
         $archivo = "referencia.ris";
         $crear = fopen($archivo, "w");
         fwrite($crear, $ris);
         fclose($crear);
 
-        header('Location: ' . $archivo);
+        $fileName = basename('referencia.ris');
+        $filePath = $fileName;
+
+        header("Cache-Control: public");
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$fileName");
+        header("Content-Type: application/zip");
+        header("Content-Transfer-Encoding: binary");
+
+        readfile($filePath);
 
     }
 
     function saveBibtex($txtRef, $lnk) {
-        $array = explode(", ", $txtRef);
+        $fragmentos = extraerInformacion($txtRef);
 
-        $autores = ""; $contAutores = 0;
-        foreach ($array as $elemento) {
-            if(strlen($elemento) <= 20) {
-                $autores = $autores . $elemento . ",";
-                $contAutores++;
-            } else {
-                break;
-            }
-        }
-    
-        $titulo = $array[$contAutores];
-        $diario = $array[$contAutores + 1];
-    
-        $volumen = $array[$contAutores + 2];
-        $volumen = str_replace("Volume ", "", $volumen);
-    
-        $year = $array[$contAutores + 3];
-    
-        $paginas = $array[$contAutores + 4];
-        $paginas = str_replace("Pages ", "", $paginas);
-        
-        $issn = $array[$contAutores + 5];
-        $issn = str_replace("ISSN ", "", $issn);
-    
-        $hastaISSN = $contAutores + 5;
-        $textTemp = ""; $cont = 0; $posISSNFin = 0;
-        for ($i=0; $i < strlen($txtRef); $i++) { 
-            $textTemp = $textTemp . substr($txtRef, $i, 1);
-            if(substr($txtRef, $i, 1) == ",") {
-                if($cont == $hastaISSN) {
-                    $posISSNFin = $i + 2;
-                    break;
-                }
-                $cont++;
-            }
-        }
-    
-        $textReferencia = substr($txtRef, $posISSNFin, strlen($txtRef));
-    
-        $array = explode(" ", $textReferencia);
-    
-        $url = $array[0];
-        $url = substr($array[0], 0, strlen($url) - 1);
-    
-        $doi = $array[1];
-        $doi = str_replace("(","",$doi);
-        $doi = str_replace(")","",$doi);
-    
-        $pos = strlen($array[0]) + strlen($array[1]) + 1;
-    
-        $textReferencia = substr($textReferencia, $pos, strlen($textReferencia));
-    
-        $textReferencia = str_replace(" Keywords: ", "|", $textReferencia);
-    
-        $array = explode("|", $textReferencia);
-    
-        $abstract = $array[0];
-        $abstract = str_replace("Abstract: ", "", $abstract);
-    
-        $keywords = $array[1];
-        $keywords = str_replace("; ",",",$keywords);
-        //----------------------------------------------------------------------------------------------
         $bib = "@article{";
         
-        $array = explode(",", $autores);
+        $array = explode(",", $fragmentos['autores']);
 
         $fstAutor = $array[0];
         $array = explode(" ", $fstAutor);
         $fstAutor = strtoupper($array[1]);
         
-        $array = explode("-",$paginas);
+        $array = explode("-",$fragmentos['paginas']);
 
         $fstPagina = $array[0];
 
-        $bib = $bib . $fstAutor . $year . $fstPagina . ",\n";
-        $bib = $bib . "title = \"" . $titulo . "\",\n";
-        $bib = $bib . "journal = \"" . $diario . "\",\n";
-        $bib = $bib . "volume = \"" . $volumen . "\",\n";
-        $bib = $bib . "pages = \"" . $paginas . "\",\n";
-        $bib = $bib . "year = \"" . $year . "\",\n";
-        $bib = $bib . "note = \n";
-        $bib = $bib . "issn = \"" . $issn . "\",\n";
-        $bib = $bib . "doi = \"" . $doi . "\",\n";
-        $bib = $bib . "url = \"" . $url . "\",\n";
+        $bib = $bib . $fstAutor . $fragmentos['year'] . $fstPagina . "," . PHP_EOL;
+        $bib = $bib . "title = \"" . substr($fragmentos['titulo'], 1, strlen($fragmentos['titulo'])) . "\"," . PHP_EOL;
+        $bib = $bib . "journal = \"" . $fragmentos['diario'] . "\"," . PHP_EOL;
+        $bib = $bib . "volume = \"" . $fragmentos['volumen'] . "\"," . PHP_EOL;
+        $bib = $bib . "pages = \"" . $fragmentos['paginas'] . "\"," . PHP_EOL;
+        $bib = $bib . "year = \"" . $fragmentos['year'] . "\"," . PHP_EOL;
+        $bib = $bib . "note = " . PHP_EOL;
+        $bib = $bib . "issn = \"" . $fragmentos['issn'] . "\"," . PHP_EOL;
+        $bib = $bib . "doi = \"" . $fragmentos['doi'] . "\"," . PHP_EOL;
+        $bib = $bib . "url = \"" . $lnk . "\"," . PHP_EOL;
 
-        $array = explode(",", $autores);
+        $array = explode(",", $fragmentos['autores']);
 
         $autores = $array[0];
 
+        $contAutores = $fragmentos['contAutores'];
         if($contAutores > 1) {
             if($contAutores == 2) {
                 $autores = $array[0] . " and " . $array[1];
@@ -336,13 +223,13 @@
             }
         }
 
-        $bib = $bib . "author = \"" . $autores . "\",\n";
+        $bib = $bib . "author = \"" . $autores . "\"," . PHP_EOL;
 
-        $keywords = str_replace(",",", ",$keywords);
-        $bib = $bib . "keywords = \"" . $keywords . "\",\n";
+        $keywords = str_replace(",",", ",$fragmentos['keywords']);
+        $bib = $bib . "keywords = \"" . $keywords . "\"," . PHP_EOL;
 
-        $abstract = substr($abstract, 1, strlen($abstract));
-        $bib = $bib . "abstract = \"" . $abstract . "\"\n}";
+        $abstract = substr($fragmentos['abstract'], 1, strlen($fragmentos['abstract']));
+        $bib = $bib . "abstract = \"" . $abstract . "\"}" . PHP_EOL;
 
         echo $bib;
 
@@ -351,7 +238,16 @@
         fwrite($crear, $bib);
         fclose($crear);
 
-        header('Location: ' . $archivo);
+        $fileName = basename('referencia.bib');
+        $filePath = $fileName;
+
+        header("Cache-Control: public");
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$fileName");
+        header("Content-Type: application/zip");
+        header("Content-Transfer-Encoding: binary");
+
+        readfile($filePath);
 
     }
 
@@ -410,16 +306,16 @@
         $keywords = $array[1];
         //---------------------------------------------------------------------------
 
-        $txt = $autores . "\n";
-        $txt = $txt . $titulo . ",\n";
-        $txt = $txt . $diario . ",\n";
-        $txt = $txt . $volumen . ",\n";
-        $txt = $txt . $year . ",\n";
-        $txt = $txt . $paginas . ",\n";
-        $txt = $txt . $issn . ",\n";
-        $txt = $txt . $url . " ";
-        $txt = $txt . $doi . "\n";
-        $txt = $txt . $abstract . "\n";
+        $txt = $autores . PHP_EOL;
+        $txt = $txt . substr($titulo, 1, strlen($titulo)) . "," . PHP_EOL;
+        $txt = $txt . $diario . "," . PHP_EOL;
+        $txt = $txt . $volumen . "," . PHP_EOL;
+        $txt = $txt . $year . "," . PHP_EOL;
+        $txt = $txt . $paginas . "," . PHP_EOL;
+        $txt = $txt . $issn . "," . PHP_EOL;
+        $txt = $txt . $lnk . " ";
+        $txt = $txt . $doi . PHP_EOL;
+        $txt = $txt . $abstract . PHP_EOL;
         $txt = $txt . "Keywords: " . $keywords;
 
 
@@ -428,7 +324,16 @@
         fwrite($crear, $txt);
         fclose($crear);
 
-        header('Location: ' . $archivo);
+        $fileName = basename('referencia.txt');
+        $filePath = $fileName;
+
+        header("Cache-Control: public");
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$fileName");
+        header("Content-Type: application/zip");
+        header("Content-Transfer-Encoding: binary");
+
+        readfile($filePath);
     }
 
 ?>
